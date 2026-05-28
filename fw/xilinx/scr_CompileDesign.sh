@@ -1,7 +1,10 @@
 #!/usr/bin/env sh
 
-export PROJECT_NAME=`awk -F '"' '/project_name_short/ {print $2}' ../../../project.yaml`
-export PART_NUMBER=`awk -F '"' '/part_number/ {print $2}' ../../../project.yaml`
+PROJECT_YAML=../../../project.yaml
+
+export PROJECT_NAME=$(yq '.* | .project_name_short' ${PROJECT_YAML})
+export PART_NUMBER=$(yq '.* | .part_number' ${PROJECT_YAML})
+export IP_REPOS=$(yq '.* | .ip_repos | join(";")' ${PROJECT_YAML})
 
 export VIVADO_VERSION=2024.1
 export VIVADO_DIR=/data/Xilinx/Vivado/${VIVADO_VERSION}

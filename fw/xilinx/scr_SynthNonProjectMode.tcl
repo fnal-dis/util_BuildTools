@@ -1,5 +1,6 @@
 set project_name $::env(PROJECT_NAME)
 set part_number $::env(PART_NUMBER)
+set ip_repos [split $::env(IP_REPOS) ";"]
 
 # # # # # # # # # # # # # # # # # # # #
 # Find files and populate directories #
@@ -7,6 +8,7 @@ set part_number $::env(PART_NUMBER)
 
 package require fileutil;
 
+set scrdir [file normalize .]
 set topdir [file normalize ../../../fw]
 
 set src_directory ${topdir}/src
@@ -36,13 +38,10 @@ set_property TARGET_LANGUAGE VHDL [current_project]
 set_property PLATFORM.DESIGN_INTENT.EMBEDDED true [current_project]
 set_property source_mgmt_mode all [current_project]
 
-# TODO: Remove
-# Read BD dependencies without VHDL2008 or SystemVerilog
-#read_vhdl ${src_directory}/hdl/txver_status.vhd
-#read_vhdl ${src_directory}/hdl/mod_ThreeWireSpiConverter.vhd
-#read_vhdl ${src_directory}/hdl/measure_frequency.vhd
-#read_vhdl [glob ${src_directory}/hdl/filter/*.vhd]
-#read_verilog [glob ${src_directory}/hdl/jesd*.v]
+if {[llength ${ip_repos}] > 0} {
+    set_property ip_repo_paths ${ip_repos} [current_fileset]
+    update_ip_catalog
+}
 
 proc nonempty {var} {
     expr {[llength $var] > 0}
@@ -51,19 +50,9 @@ proc nonempty {var} {
 # Find and Read BD dependencies before mass HDL import
 if {[nonempty ${files_bd}]} {
     # Collect unique module names referenced across all BD scripts
-    set mods [lsort -unique [concat {*}[lmap f [glob $bd_dir/*.tcl] {
-        set m [regexp -inline {# module references:\n# (.+)} [fileutil::cat $f]]
-        expr {$m eq {} ? {} : [split [lindex $m 1] ", "]}
-    }]]]
-
-    # For each module, locate the HDL file declaring it and read without -vhdl2008
-    foreach mod [lsearch -all -inline -not $mods {}] {
-        foreach f [fileutil::findByPattern $hdl_dir {*.vhd *.v}] {
-            if {[regexp "(entity|module)\\s+${mod}\\s" [fileutil::cat $f]]} {
-                if {[string match *.vhd $f]} { read_vhdl $f } else { read_verilog $f }
-                break
-            }
-        }
+    source ${scrdir}/scr_FindBdModules.tcl
+    foreach f [find_bd_module_files ${files_bd} ${src_directory}] {
+        if {[string match *.vhd $f]} {read_vhdl $f} else {read_verilog $f}
     }
 }
 
