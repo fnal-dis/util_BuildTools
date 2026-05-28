@@ -7,7 +7,7 @@ set part_number $::env(PART_NUMBER)
 
 package require fileutil;
 
-set topdir [file normalize ../..]
+set topdir [file normalize ../../../fw]
 
 set src_directory ${topdir}/src
 set modules_directory ${topdir}/modules
@@ -25,6 +25,8 @@ set files_vhd [fileutil::findByPattern ${src_directory}/hdl *.vhd]
 set files_ver [fileutil::findByPattern ${src_directory}/hdl *.v]
 set files_xdc [fileutil::findByPattern ${src_directory}/constraints *.xdc]
 set files_xcix [fileutil::findByPattern ${src_directory}/ip *.xcix]
+set files_bd [fileutil::findByPattern ${src_directory}/bd *.tcl]
+
 # # # # # # # # # # # # # # # # # # # #
 # Begin Xilinx build commands         #
 # # # # # # # # # # # # # # # # # # # #
@@ -44,6 +46,25 @@ set_property source_mgmt_mode all [current_project]
 
 proc nonempty {var} {
     expr {[llength $var] > 0}
+}
+
+# Find and Read BD dependencies before mass HDL import
+if {[nonempty ${files_bd}]} {
+    # Collect unique module names referenced across all BD scripts
+    set mods [lsort -unique [concat {*}[lmap f [glob $bd_dir/*.tcl] {
+        set m [regexp -inline {# module references:\n# (.+)} [fileutil::cat $f]]
+        expr {$m eq {} ? {} : [split [lindex $m 1] ", "]}
+    }]]]
+
+    # For each module, locate the HDL file declaring it and read without -vhdl2008
+    foreach mod [lsearch -all -inline -not $mods {}] {
+        foreach f [fileutil::findByPattern $hdl_dir {*.vhd *.v}] {
+            if {[regexp "(entity|module)\\s+${mod}\\s" [fileutil::cat $f]]} {
+                if {[string match *.vhd $f]} { read_vhdl $f } else { read_verilog $f }
+                break
+            }
+        }
+    }
 }
 
 if {[nonempty ${files_vhd}]} {read_vhdl -vhdl2008 ${files_vhd}}
@@ -87,9 +108,8 @@ proc generate_bd_files {bd_name} {
 }
 
 # Read and generate block designs (order is alphabetic)
-foreach bd_file [glob -nocomplain ${src_directory}/bd/*.tcl] {
+foreach bd_file ${files_bd} {
     source $bd_file
-
     set bd_name [file rootname [file tail $bd_file]]
     generate_bd_files $bd_name
 }

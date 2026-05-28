@@ -7,7 +7,7 @@ import re
 import zipfile
 
 this_path = Path(__file__).parent
-src_path = this_path / "../../src"
+src_path = this_path / "../../../fw/src"
 #synth_path = this_path / "../../_project/intel/ip/"
 
 VU = VUnit.from_argv()
