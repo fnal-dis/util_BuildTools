@@ -69,7 +69,7 @@ if {[nonempty ${files_xcix}]} {
 
     # Read IP VHDL stubs into work so `entity work.<ip>` instantiations resolve
     foreach ip [get_ips] {
-        set stubs [get_files -quiet -of_objects $ip -filter {FILE_TYPE == "VHDL" && USED_IN =~ "*synthesis*"}]
+        set stubs [get_files -quiet -of_objects $ip -filter {FILE_TYPE == "VHDL" && USED_IN =~ "*synthesis*" && NAME =~ "*stub.vhdl"}]
         if {$stubs ne ""} {
             read_vhdl -vhdl2008 $stubs
         }
