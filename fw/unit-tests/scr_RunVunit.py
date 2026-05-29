@@ -18,6 +18,9 @@ lib_path = Path("/data/javierc/000_Resources/IP_Libraries/")
 #VU.add_external_library("unisim", lib_path / "unisim/v08")
 #VU.add_external_library("secureip", lib_path / "secureip/v08")
 
+xpm = VU.add_library("xpm")
+xpm.add_source_files("/data/Xilinx/Vivado/2024.1/data/ip/xpm/xpm_VCOMP.vhd")
+
 lib = VU.add_library("lib")
 lib.add_source_files(src_path / "hdl/**/*.vhd")
 lib.add_source_files(src_path / "bd/**/*.vhd", allow_empty=True)
