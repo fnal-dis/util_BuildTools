@@ -106,6 +106,7 @@ foreach bd_file ${files_bd} {
 set ips [get_ips]
 if {[nonempty ${ips}]} {upgrade_ip [get_ips]}
 
+write_project_tcl -force -all_properties ${results_directory}/generate_project.tcl
 write_hw_platform -fixed -force -file ${results_directory}/${project_name}.xsa
 
 # TODO: How to map an elf file to the microblaze core
@@ -125,6 +126,8 @@ write_checkpoint -force ${results_directory}/post_place.dcp
 route_design
 phys_opt_design
 write_checkpoint -force ${results_directory}/post_route.dcp
+
+report_timing
 
 write_bitstream -force ${results_directory}/${project_name}.bit
 write_debug_probes -force ${results_directory}/${project_name}.ltx
