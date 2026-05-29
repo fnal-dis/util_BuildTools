@@ -22,6 +22,7 @@ xpm = VU.add_library("xpm")
 xpm.add_source_files("/data/Xilinx/Vivado/2024.1/data/ip/xpm/xpm_VCOMP.vhd")
 
 lib = VU.add_library("lib")
+lib.add_source_files(src_path / "../modules/**/*.vhd")
 lib.add_source_files(src_path / "hdl/**/*.vhd")
 lib.add_source_files(src_path / "bd/**/*.vhd", allow_empty=True)
 
@@ -37,8 +38,9 @@ for f in VU.get_compile_order():
     print(f.name)
 #import pdb; pdb.set_trace()
 
+VU.set_compile_option("ghdl.a_flags", [f"-fsynopsys"])
+
 #VU.set_sim_option("ghdl.elab_flags", ["-P/data/Xilinx/Vivado/2024.1/data/vhdl/src"])
-#VU.set_compile_option("ghdl.a_flags", [f"-P/data/Xilinx/Vivado/2024.1/data/vhdl/src"])
 #VU.set_sim_option("ghdl.sim_flags", ["--wave=digitalbus.ghw"])
 #VU.set_compile_option("enable_coverage", True)
 #VU.set_sim_option("enable_coverage", True)
