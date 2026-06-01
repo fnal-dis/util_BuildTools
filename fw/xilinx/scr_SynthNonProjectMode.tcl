@@ -106,7 +106,7 @@ foreach bd_file ${files_bd} {
 set ips [get_ips]
 if {[nonempty ${ips}]} {upgrade_ip [get_ips]}
 
-write_project_tcl -force -all_properties ${results_directory}/generate_project.tcl
+#write_project_tcl -force -all_properties ${results_directory}/generate_project.tcl
 write_hw_platform -fixed -force -file ${results_directory}/${project_name}.xsa
 
 # TODO: How to map an elf file to the microblaze core
