@@ -17,8 +17,9 @@ set modules_directory ${topdir}/fw/modules
 set current_time [clock seconds]
 set fmt_date [clock format [clock seconds] -format "%Y%m%d%I%M%S"]
 
-set project_directory ${topdir}/_build/fw/vivado_${fmt_date}
-set results_directory ${topdir}/_outputs/fw/
+set project_directory ${topdir}/_build/fw/vivado
+set results_directory ${topdir}/_outputs/fw/${fmt_date}
+set latest_directory ${topdir}/_outputs/fw/latest
 
 file delete -force -- ${project_directory}
 
@@ -135,3 +136,8 @@ report_timing
 
 write_bitstream -force ${results_directory}/${project_name}.bit
 write_debug_probes -force ${results_directory}/${project_name}.ltx
+
+
+file delete -force -- ${latest_directory}
+file mkdir ${latest_directory}
+cp -r ${results_directory} ${latest_directory}
