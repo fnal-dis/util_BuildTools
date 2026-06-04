@@ -1,7 +1,10 @@
 #!/usr/bin/env sh
 
-export PROJECT_NAME=`awk -F '"' '/project_name_short/ {print $2}' ../../../project.yaml`
-export PART_NUMBER=`awk -F '"' '/part_number/ {print $2}' ../../../project.yaml`
+rootdir="../../../"
+PROJECT_YAML=${rootdir}/project.yaml
+
+export PROJECT_NAME=$(yq '.* | .project_name_short' ${PROJECT_YAML})
+export PART_NUMBER=$(yq '.* | .part_number' ${PROJECT_YAML})
 
 export VITIS_VERSION=2024.1
 export VITIS_DIR=/data/Xilinx/Vitis/${VITIS_VERSION}
@@ -9,3 +12,6 @@ export VITIS_DIR=/data/Xilinx/Vitis/${VITIS_VERSION}
 source ${VITIS_DIR}/settings64.sh
 
 vitis -s scr_BuildPlatformAndSoftware.py
+
+mkdir -p ${rootdir}/_outputs/sw
+cp ${rootdir}/_build/sw/**/build/*.elf ${rootdir}/_outputs/sw

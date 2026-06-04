@@ -8,7 +8,7 @@ import platform as os_platform
 
 root = (Path(__file__).parent / "../../..").resolve()
 
-try:
+try
     xsa_path = next(root.glob("**/*.xsa"))
 except StopIteration:
     raise Exception("Failed finding .xsa file. Fix fw flow first!")
@@ -18,7 +18,7 @@ client = vitis.create_client()
 
 # Configure workspace
 date = datetime.now().strftime("%Y%m%d%I%M%S")
-workspace = './_tmp/workspace_'+date+'/'
+workspace = root / f'_build/sw/vitis_{date}/'
 
 if (os.path.isdir(workspace)):
     shutil.rmtree(workspace)
