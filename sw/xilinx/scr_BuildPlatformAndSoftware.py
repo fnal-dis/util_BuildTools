@@ -31,28 +31,25 @@ if project_name == '':
     project_name = 'NoName'
 
 platform_name = f"plat_{project_name}"
-domain_name = "standalone_a53_0"
-
 print("Creating platform")
 print(xsa_path)
 platform = client.create_platform_component(
     name = platform_name,
-    hw_design = xsa_path,
-    domain_name = domain_name,
-    cpu = "psu_cortexa53_0",
-    os = "standalone"
+    hw_design = xsa_path
 )
 platform.report()
 
 print("Creating domain")
-print(domain_name)
-print("Existing domains:")
+domain_name = "standalone_a53_0"
+standalone_a53_0 = platform.add_domain(
+    name = domain_name,
+    cpu = "psu_cortexa53_0",
+    os = "standalone")
+standalone_a53_0.report()
+
+# Check that domain was created
 for domain in platform.list_domains():
     print(domain)
-
-# Get the domain
-standalone_a53_0 = platform.get_domain(domain_name)
-standalone_a53_0.report()
 
 print("Building platform")
 platform.build()
