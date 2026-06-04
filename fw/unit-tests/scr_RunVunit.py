@@ -22,7 +22,7 @@ xpm = VU.add_library("xpm")
 xpm.add_source_files("/data/Xilinx/Vivado/2024.1/data/ip/xpm/xpm_VCOMP.vhd")
 
 lib = VU.add_library("lib")
-lib.add_source_files(src_path / "../modules/**/*.vhd")
+lib.add_source_files(src_path / "../modules/**/*.vhd", allow_empty=True)
 lib.add_source_files(src_path / "hdl/**/*.vhd")
 lib.add_source_files(src_path / "bd/**/*.vhd", allow_empty=True)
 
