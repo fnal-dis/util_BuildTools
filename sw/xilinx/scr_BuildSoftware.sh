@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-rootdir="../../../"
+rootdir="../../.."
 PROJECT_YAML=${rootdir}/project.yaml
 
 export PROJECT_NAME=$(yq '.* | .project_name_short' ${PROJECT_YAML})
