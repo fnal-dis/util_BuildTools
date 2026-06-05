@@ -9,12 +9,17 @@ set ip_repos [split $::env(IP_REPOS) ";"]
 package require fileutil;
 
 set scrdir [file normalize .]
-set topdir [file normalize ../../../fw]
+set topdir [file normalize ../../../]
 
-set src_directory ${topdir}/src
-set modules_directory ${topdir}/modules
-set results_directory ${topdir}/outputs
-set project_directory ${topdir}/_project/xilinx
+set src_directory ${topdir}/fw/src
+set modules_directory ${topdir}/fw/modules
+
+set current_time [clock seconds]
+set fmt_date [clock format [clock seconds] -format "%Y%m%d%I%M%S"]
+
+set project_directory ${topdir}/_build/fw/vivado
+set results_directory ${topdir}/_outputs/fw/${fmt_date}
+set latest_directory ${topdir}/_outputs/fw/latest
 
 file delete -force -- ${project_directory}
 
@@ -131,3 +136,7 @@ report_timing
 
 write_bitstream -force ${results_directory}/${project_name}.bit
 write_debug_probes -force ${results_directory}/${project_name}.ltx
+
+
+file delete -force -- ${latest_directory}
+file copy ${results_directory} ${latest_directory}
