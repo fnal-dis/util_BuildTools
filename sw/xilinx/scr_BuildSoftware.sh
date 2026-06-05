@@ -14,4 +14,5 @@ source ${VITIS_DIR}/settings64.sh
 vitis -s scr_BuildPlatformAndSoftware.py
 
 mkdir -p ${rootdir}/_outputs/sw
+shopt -s globstar
 cp ${rootdir}/_build/sw/**/build/*.elf ${rootdir}/_outputs/sw
