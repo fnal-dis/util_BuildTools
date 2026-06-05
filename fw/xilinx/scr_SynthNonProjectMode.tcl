@@ -140,4 +140,4 @@ write_debug_probes -force ${results_directory}/${project_name}.ltx
 
 file delete -force -- ${latest_directory}
 file mkdir ${latest_directory}
-cp -r ${results_directory} ${latest_directory}
+file copy [glob ${results_directory}/*] ${latest_directory}
