@@ -9,7 +9,7 @@ import platform as os_platform
 root = (Path(__file__).parent / "../../..").resolve()
 
 try:
-    xsa_path = next(root.glob("_outputs/fw/latest/*.xsa"))
+    xsa_path = next(root.glob("_outputs/fw/latest/**/*.xsa"))
 except StopIteration:
     raise Exception("Failed finding .xsa file. Fix fw flow first!")
 
