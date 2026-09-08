@@ -29,7 +29,10 @@ file mkdir ${project_directory}
 cd ${project_directory}
 
 set files_vhd [fileutil::findByPattern ${src_directory}/hdl *.vhd]
-set files_ver [fileutil::findByPattern ${src_directory}/hdl *.v]
+set files_ver [concat \
+               [fileutil::findByPattern ${src_directory}/hdl *.v] \
+               [fileutil::findByPattern ${src_directory}/hdl *.sv] \
+               ]
 set files_xdc [fileutil::findByPattern ${src_directory}/constraints *.xdc]
 set files_xcix [fileutil::findByPattern ${src_directory}/ip *.xcix]
 set files_bd [fileutil::findByPattern ${src_directory}/bd *.tcl]
@@ -61,6 +64,13 @@ if {[nonempty ${files_bd}]} {
     }
 }
 
+if {[file exists ${modules_directory}]} {
+    set files_vhd [concat $files_vhd [fileutil::findByPattern ${modules_directory} *.vhd]]
+    set files_ver [concat $files_ver [fileutil::findByPattern ${modules_directory} *.v]]
+    set files_ver [concat $files_ver [fileutil::findByPattern ${modules_directory} *.sv]]
+}
+
+
 if {[nonempty ${files_vhd}]} {read_vhdl -vhdl2008 ${files_vhd}}
 if {[nonempty ${files_ver}]} {read_verilog -sv ${files_ver}}
 if {[nonempty ${files_xdc}]} {read_xdc ${files_xdc}}
@@ -81,11 +91,6 @@ if {[nonempty ${files_xcix}]} {
     }
 }
 
-
-if {[file exists ${modules_directory}]} {
-    read_vhdl -vhdl2008 [fileutil::findByPattern ${modules_directory} *.vhd]
-    read_verilog -sv [fileutil::findByPattern ${modules_directory} *.v]
-}
 
 set_property top top [get_filesets sources_1]
 update_compile_order -fileset sources_1
