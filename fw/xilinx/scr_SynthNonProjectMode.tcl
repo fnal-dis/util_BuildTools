@@ -119,11 +119,9 @@ if {[nonempty ${ips}]} {upgrade_ip [get_ips]}
 #write_project_tcl -force -all_properties ${results_directory}/generate_project.tcl
 write_hw_platform -fixed -force -file ${results_directory}/${project_name}.xsa
 
-# TODO: How to map an elf file to the microblaze core
-#set elf_file "<GimmeThePath/file.elf>"
-#add_files ${elf_file}
-#set_property SCOPED_TO_CELLS microblaze_0 [get_files ${elf_file}]
-#set_property SCOPED_TO_REF main [get_files ${elf_file}]
+# The ELF is not built yet at this point -- it is compiled against the XSA
+# written above -- so it is merged into the bitstream afterwards with
+# updatemem, using the .mmi written below. See scr_EmbedElf.sh.
 
 synth_design
 opt_design
@@ -141,6 +139,13 @@ report_timing
 
 write_bitstream -force ${results_directory}/${project_name}.bit
 write_debug_probes -force ${results_directory}/${project_name}.ltx
+
+# BRAM memory map for scr_EmbedElf.sh. Written from the routed design, so the
+# merge only re-initialises BRAM and never re-implements anything. A design
+# with no processor has nothing to map; that is not a build failure.
+if {[catch {write_mem_info -force ${results_directory}/${project_name}.mmi} err]} {
+    puts "WARNING: write_mem_info failed, no .mmi written: $err"
+}
 
 
 file delete -force -- ${latest_directory}
