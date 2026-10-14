@@ -8,7 +8,10 @@ PROJECT_YAML=${rootdir}/project.yaml
 PROJECT_NAME=$(yq '.* | .project_name_short' "${PROJECT_YAML}")
 PART_NUMBER=$(yq '.* | .part_number' "${PROJECT_YAML}")
 IP_REPOS=$(yq '.* | .ip_repos // [] | join(";")' "${PROJECT_YAML}")
-export PROJECT_NAME PART_NUMBER IP_REPOS
+# Top-level entity. Code-generated projects use `top` (the generated
+# top_<project>.vhd); a hand-written design names its own top here.
+TOP_ENTITY=$(yq '.* | .top_entity // "top"' "${PROJECT_YAML}")
+export PROJECT_NAME PART_NUMBER IP_REPOS TOP_ENTITY
 
 export VIVADO_VERSION=${VIVADO_VERSION:-2024.1}
 export VIVADO_DIR=${VIVADO_DIR:-/data/Xilinx/Vivado/${VIVADO_VERSION}}

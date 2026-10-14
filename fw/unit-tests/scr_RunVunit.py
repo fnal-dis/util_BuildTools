@@ -25,6 +25,9 @@ lib = VU.add_library("lib")
 lib.add_source_files(src_path / "../modules/**/*.vhd", allow_empty=True)
 lib.add_source_files(src_path / "hdl/**/*.vhd")
 lib.add_source_files(src_path / "bd/**/*.vhd", allow_empty=True)
+# VHDL declarations of Verilog/SystemVerilog modules that VHDL instantiates as
+# `entity work.<module>`. GHDL reads VHDL only; Vivado never reads this folder.
+lib.add_source_files(src_path / "sim_stubs/**/*.vhd", allow_empty=True)
 
 ip_found = False
 for f in Path(src_path / "ip").rglob("*.xcix"):
