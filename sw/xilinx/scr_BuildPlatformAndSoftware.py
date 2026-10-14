@@ -38,10 +38,15 @@ TEXT_OFFSET = 0x50
 
 
 def base_vectors_from_xsa(path: Path):
-    """C_BASE_VECTORS from the MicroBlaze .hwh inside the XSA, or None."""
+    """C_BASE_VECTORS from the .hwh describing the MicroBlaze, or None.
+
+    The .hwh is named after the block design that holds the MicroBlaze, which
+    need not mention "microblaze" (e.g. design_1.hwh), so every .hwh is
+    searched. Only MicroBlaze cores carry C_BASE_VECTORS.
+    """
     with zipfile.ZipFile(path) as archive:
-        for name in archive.namelist():
-            if not name.endswith(".hwh") or "microblaze" not in name.lower():
+        for name in sorted(archive.namelist()):
+            if not name.endswith(".hwh"):
                 continue
             text = archive.read(name).decode("utf-8", "replace")
             match = re.search(r'C_BASE_VECTORS"\s+VALUE="(0x[0-9A-Fa-f]+)"', text)
@@ -57,6 +62,22 @@ def relocate_vectors(script: Path, base_vectors: int) -> None:
     if len(origins) != 1:
         raise Exception(f"{script}: expected exactly one MEMORY region, found {len(origins)}")
     origin = int(origins[0], 16)
+
+    # Vitis's own layout when the vectors already sit at C_BASE_VECTORS: the
+    # vector sections at base + offset, and the region starting after them at
+    # base + 0x50 (the usual case for LMB BRAM at 0x0). Nothing to relocate.
+    if origin == base_vectors + TEXT_OFFSET:
+        for section, offset in VECTOR_OFFSETS.items():
+            match = re.search(re.escape(section) + r"\s+(0x[0-9A-Fa-f]+)\s*:", text)
+            if not match or int(match.group(1), 16) != base_vectors + offset:
+                raise Exception(
+                    f"{script}: memory ORIGIN {origin:#x} leaves room for the vectors at "
+                    f"C_BASE_VECTORS {base_vectors:#x}, but {section} is not at "
+                    f"{base_vectors + offset:#x}"
+                )
+        print(f"Vectors already at C_BASE_VECTORS {base_vectors:#x}; linker script unchanged")
+        return
+
     if origin != base_vectors:
         raise Exception(
             f"{script}: memory ORIGIN {origin:#x} does not match the XSA's "
@@ -99,7 +120,7 @@ base_vectors = None
 if "microblaze" in cpu_name.lower():
     base_vectors = base_vectors_from_xsa(xsa_path)
     if base_vectors is None:
-        raise Exception(f"C_BASE_VECTORS not found in any MicroBlaze .hwh inside {xsa_path}")
+        raise Exception(f"C_BASE_VECTORS not found in any .hwh inside {xsa_path}")
     print(f"XSA {xsa_path} reports C_BASE_VECTORS {base_vectors:#x}")
 
 client = vitis.create_client()

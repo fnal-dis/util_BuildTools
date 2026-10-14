@@ -1,6 +1,10 @@
 set project_name $::env(PROJECT_NAME)
 set part_number $::env(PART_NUMBER)
 set ip_repos [split $::env(IP_REPOS) ";"]
+set top_entity top
+if {[info exists ::env(TOP_ENTITY)] && $::env(TOP_ENTITY) ne ""} {
+    set top_entity $::env(TOP_ENTITY)
+}
 
 # # # # # # # # # # # # # # # # # # # #
 # Find files and populate directories #
@@ -79,7 +83,9 @@ proc run_hook {name args} {
 set files_vhd [fileutil::findByPattern ${src_directory}/hdl *.vhd]
 set files_v   [fileutil::findByPattern ${src_directory}/hdl *.v]
 set files_sv  [fileutil::findByPattern ${src_directory}/hdl *.sv]
-set files_xdc [fileutil::findByPattern ${src_directory}/constraints *.xdc]
+# Constraint files are read in path order: a later file may refer to clocks
+# an earlier one creates, so the order must not depend on the filesystem.
+set files_xdc [lsort [fileutil::findByPattern ${src_directory}/constraints *.xdc]]
 set files_xcix [fileutil::findByPattern ${src_directory}/ip *.xcix]
 set files_bd [fileutil::findByPattern ${src_directory}/bd *.tcl]
 
@@ -143,7 +149,8 @@ if {[nonempty ${files_xcix}]} {
 }
 
 
-set_property top top [get_filesets sources_1]
+puts "INFO: top-level entity ${top_entity}"
+set_property top ${top_entity} [get_filesets sources_1]
 update_compile_order -fileset sources_1
 
 proc generate_bd_files {bd_name} {
