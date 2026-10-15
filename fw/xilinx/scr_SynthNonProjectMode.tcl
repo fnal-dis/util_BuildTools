@@ -5,6 +5,18 @@ set top_entity top
 if {[info exists ::env(TOP_ENTITY)] && $::env(TOP_ENTITY) ne ""} {
     set top_entity $::env(TOP_ENTITY)
 }
+# Debug build (scr_CompileDesign.sh): ::build_debug is visible to the block
+# design scripts in fw/src/bd, and top_generics ("NAME=VALUE ...") is applied
+# to the top entity with synth_design -generic.
+set ::build_debug 0
+if {[info exists ::env(BUILD_DEBUG)] && $::env(BUILD_DEBUG) eq "1"} {
+    set ::build_debug 1
+}
+set top_generics {}
+if {[info exists ::env(TOP_GENERICS)]} {
+    set top_generics [regexp -all -inline {\S+} $::env(TOP_GENERICS)]
+}
+set build_variant [expr {$::build_debug ? "debug" : "release"}]
 
 # # # # # # # # # # # # # # # # # # # #
 # Find files and populate directories #
@@ -185,7 +197,13 @@ run_hook hook_post_bd ${results_directory} ${xsa}
 # written above -- so it is merged into the bitstream afterwards with
 # updatemem, using the .mmi written below. See scr_EmbedElf.sh.
 
-synth_design
+puts "INFO: build variant ${build_variant}, top generics: [expr {[nonempty ${top_generics}] ? ${top_generics} : {(none)}}]"
+set synth_args {}
+foreach g ${top_generics} {
+    if {![regexp {^[A-Za-z][A-Za-z0-9_]*=\S+$} $g]} { fail "malformed top generic '${g}'; expected NAME=VALUE" }
+    lappend synth_args -generic $g
+}
+synth_design {*}${synth_args}
 
 opt_design
 run_hook hook_post_opt ${results_directory}
@@ -230,7 +248,17 @@ if {${wns} < 0 || ${whs} < 0} {
 }
 
 write_bitstream -force ${results_directory}/${project_name}.bit
-write_debug_probes -force ${results_directory}/${project_name}.ltx
+# A design with no ILA/VIO has no probes to write; that is not a build failure.
+if {[llength [get_debug_cores -quiet]] > 0} {
+    write_debug_probes -force ${results_directory}/${project_name}.ltx
+} else {
+    puts "INFO: no debug cores in the design; no .ltx written"
+}
+
+# Which kind of build this is, read by CI and the release manifest.
+set fh [open ${results_directory}/BUILD_VARIANT w]
+puts $fh ${build_variant}
+close $fh
 
 # BRAM memory map for scr_EmbedElf.sh. Written from the routed design, so the
 # merge only re-initialises BRAM and never re-implements anything. A design
