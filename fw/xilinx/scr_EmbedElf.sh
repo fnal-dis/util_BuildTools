@@ -64,6 +64,10 @@ if [[ "${EMBED_ELF_SKIP_AGE_CHECK:-0}" != "1" && "${elf}" -ot "${bit}" ]]; then
   exit 1
 fi
 
+# Start from an empty output directory: a probe file (.ltx) left by an earlier
+# build would otherwise sit next to a bitstream it does not describe, e.g. a
+# debug build's probes next to a release bitstream that has no debug cores.
+rm -rf "${merged_dir}"
 mkdir -p "${work}" "${merged_dir}"
 
 if [[ ! -f "${mmi}" ]]; then
